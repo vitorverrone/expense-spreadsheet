@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { currency } from 'remask';
 import toast from 'react-hot-toast';
 
@@ -7,8 +6,8 @@ import Input from "./input-form";
 import Modal from "./modal";
 import { addBillAction } from '@/actions';
 import Bill from '../../interfaces/bill.iterface';
+import { BillType } from '../../interfaces/bill.iterface';
 import Loading from './loading';
-
 
 interface AddBillModalProps {
     showBillModal: boolean;
@@ -17,26 +16,23 @@ interface AddBillModalProps {
 }
 
 export default function AddBillModal({ showBillModal, setShowBillModal, userId }: AddBillModalProps) {
-    const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<Bill>({ defaultValues: { installments: 0 }});
-    const [billType, setBillType] = useState('');
+    const { control, register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<Bill>({
+        defaultValues: { installments: 0, billType: 'normal' as BillType }
+    });
 
-    const billTypes = [
-        { name: 'normal', displayName: 'Normal'},
-        { name: 'recurrent', displayName: 'Recorrente' },
-        { name: 'installment', displayName: 'Parcelada' }
-    ];
+    const selectedType = watch('billType');
 
     const handleOnSubmit = async (data: Bill) => {
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
         const date = new Date(data.billDate);
-        const finalDate = new Date(billType === 'installment' ? new Date(date).setMonth(date.getMonth() + Number(data.installments - 1)) : tomorrow).toISOString().split('T')[0];
+        const finalDate = new Date(selectedType === 'installment' ? new Date(date).setMonth(date.getMonth() + Number(data.installments - 1)) : tomorrow).toISOString().split('T')[0];
 
         data.value = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: data.value.toString() });
 
-        const bill = {...data,
-            billType: billType,
+        const bill = {
+            ...data,
             userId: Number(userId),
             finalDate
         }
@@ -50,7 +46,6 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
 
         toast.success(result.message);
         reset();
-        setBillType('');
         setShowBillModal(false);
     };
 
@@ -59,10 +54,6 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
         const raw = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: value })
         const masked = currency.mask({ locale: 'pt-BR', currency: 'BRL', value: raw })
         setValue('value', masked);
-    };
-
-    const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setBillType(e.target.value);
     };
 
     const modalFooterContent = (
@@ -74,19 +65,19 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
             <div className="mb-5">
                 <label htmlFor="title" className="block mb-2 text-sm font-medium dark:text-white">Nome da conta</label>
                 <Input type="text" id="title" placeholder="Ex: Conta de Luz" {...register('title', { required: "O campo nome é obrigatório" })} />
-                {errors.title && <span>{errors.title.message}</span>}
+                {errors.title && <span className="text-red-500">{errors.title.message}</span>}
             </div>
 
             <div className="mb-5">
                 <label htmlFor="value" className="block mb-2 text-sm font-medium dark:text-white">Valor da conta</label>
                 <Input type="text" id="value" placeholder="R$ 200,00" {...register('value', { required: "O campo valor é obrigatório" })} onChange={handleCurrencyChange} />
-                {errors.value && <span>{errors.value.message}</span>}
+                {errors.value && <span className="text-red-500">{errors.value.message}</span>}
             </div>
 
             <div className="mb-5">
                 <label htmlFor="billDate" className="block mb-2 text-sm font-medium dark:text-white">Data da compra</label>
                 <Input type="date" id="billDate" placeholder="Ex: Conta de Luz" {...register('billDate', { required: "O campo data é obrigatório" })} />
-                {errors.billDate && <span>{errors.billDate.message}</span>}
+                {errors.billDate && <span className="text-red-500">{errors.billDate.message}</span>}
             </div>
 
             <div className="my-5">
@@ -95,19 +86,32 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
                 </h4>
 
                 <div className="flex items-start my-5 gap-6 flex-wrap">
-                    {billTypes.map(type => (
-                        <div className="flex items-center h-5" key={type.name}>
-                            <input id={`billType${type.name}`} type="radio" value={type.name} name="billType" className="w-4 h-4 border border-gray-300 rounded-sm bg-gray-50 dark:bg-gray-700 dark:border-gray-600" onChange={handleTypeChange} />
-                            <label htmlFor={`billType${type.name}`} className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Compra {type.displayName}</label>
-                        </div>
-                    ))}
+                    <Controller
+                        name="billType"
+                        control={control}
+                        render={({ field }) => (
+                            <>
+                                {[
+                                    { id: 'normal', label: 'Normal', icon: '💰' },
+                                    { id: 'installment', label: 'Parcelada', icon: '🗓️' },
+                                    { id: 'recurrent', label: 'Recorrente', icon: '🔄' }
+                                ].map((type) => (
+                                    <div className="flex items-center h-5" key={type.id}>
+                                        <input id={`billType${type.id}`} type="radio" value={type.id} name="billType" className="w-4 h-4 border border-gray-300 rounded-sm bg-gray-50 dark:bg-gray-700 dark:border-gray-600" onChange={() => field.onChange(type.id)} />
+                                        <label htmlFor={`billType${type.id}`} className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{type.label} {type.icon}</label>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+                    />
                 </div>
+                {errors.billType && <span className="text-red-500">{errors.billType.message}</span>}
             </div>
 
-            {billType === 'installment' && (<div className="mb-5">
+            {selectedType === 'installment' && (<div className="mb-5">
                 <label htmlFor="installments" className="block mb-2 text-sm font-medium dark:text-white">Parcelas</label>
                 <Input type="number" id="installments" placeholder="Ex: Conta de Luz" {...register('installments', { required: "O campo parcelas é obrigatório" })} />
-                {errors.installments && <span>{errors.installments.message}</span>}
+                {errors.installments && <span className="text-red-500">{errors.installments.message}</span>}
             </div>)}
         </Modal>
     )

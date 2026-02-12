@@ -28,31 +28,24 @@ export class BillsService {
 
     async getBillsFromUser(userId: number, month?: number, year?: number, title?: string) {
         const today = new Date();
-        year = year ? year : today.getFullYear();
-        month = month ? month - 1 : today.getMonth();
+        const targetYear = year ? Number(year) : today.getFullYear();
+        const targetMonth = month ? Number(month) : today.getMonth();
+        const startOfMonth = new Date(targetYear, targetMonth, 1);
+        const endOfMonth = new Date(targetYear, targetMonth + 1, 0);
 
-        const getStartOfMonth = (date: Date) => {
-            return new Date(date.getFullYear(), date.getMonth(), 1);
-        }
-
-        const getEndOfMonth = (date: Date) => {
-            return new Date(date.getFullYear(), date.getMonth() + 1, 0);
-        }
-
-        const referenceDate = new Date(year, month, 1);
         const query = this.billsRepo.createQueryBuilder('bill').where('bill.userId = :userId', { userId });
-
+ 
         query.andWhere(
         `(
             (bill.billType = 'normal' AND bill.billDate >= :startOfMonth AND bill.billDate <= :endOfMonth)
             OR
             (bill.billType = 'installment' AND bill.billDate <= :endOfMonth AND bill.finalDate >= :startOfMonth)
             OR
-            (bill.billType = 'recurrent' AND bill.billDate <= :endOfMonth)
+            (bill.billType = 'recurrent')
         )`,
             {
-                startOfMonth: getStartOfMonth(referenceDate),
-                endOfMonth: getEndOfMonth(referenceDate),
+                startOfMonth,
+                endOfMonth,
             }
         );
 

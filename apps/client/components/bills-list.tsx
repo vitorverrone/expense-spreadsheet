@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { MdArrowForwardIos, MdArrowBackIos, MdOutlineRemoveRedEye } from "react-icons/md";
 import { FaFilter } from "react-icons/fa";
 import { GoSearch, GoPlus } from "react-icons/go";
@@ -11,10 +11,10 @@ import AddBillModal from "./add-bill-modal";
 import DeleteBillModal from "./delete-bill-modal";
 import Bill from "../../interfaces/bill.iterface";
 
-export default function BillsList({ bills, userId }: { bills: Bill[], userId: string }) {
-    const today = new Date();
-    const [month, setMonth] = useState(today.toLocaleString('default', { month: 'long' }));
-    const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
+export default function BillsList({ bills, userId, month, year }: { bills: Bill[], userId: string, month: string, year: string }) {
+    const today = new Date(Number(year), Number(month), 1);
+    const [longMonth, setMonth] = useState(today.toLocaleString('default', { month: 'long' }));
+    const [newYear, setYear] = useState(today.getFullYear());
     const [showFilterBar, setShowFilterBar] = useState(false);
     const [filterSearch, setFilterSearch] = useState('');
     const [showAddBillModal, setShowAddBillModal] = useState(false);
@@ -24,20 +24,30 @@ export default function BillsList({ bills, userId }: { bills: Bill[], userId: st
     const pathname = usePathname();
 
     let monthTotal = 0;
+    const searchParams = useSearchParams();
 
-    const handleChangeMonth = (newMonth: number) => {
-        setSelectedMonth(newMonth);
+    const navigateMonth = (step: number) => {
+        let newMonth = parseInt(month) + step;
+        let newYear = parseInt(year);
 
-        const getDateMonth = new Date(today.getFullYear(), newMonth, 1);
-        setMonth(getDateMonth.toLocaleString('default', { month: 'long' }))        
+        if (newMonth > 11) {
+            newMonth = 0;
+            newYear++;
+        } else if (newMonth < 0) {
+            newMonth = 11;
+            newYear--;
+        }
 
-        const params = new URLSearchParams();
+        const navigatedDate = new Date(newYear, newMonth, 1);
+        const params = new URLSearchParams(searchParams.toString());
 
-        console.log('newMonth', newMonth);
+        setMonth(navigatedDate.toLocaleString('default', { month: 'long' }))        
+        setYear(navigatedDate.getFullYear());
+        
         params.set('month', newMonth.toString());
-        // params.set('year', month);
+        params.set('year', newYear.toString());
         router.push(`${pathname}?${params.toString()}`);
-    }
+    };
 
     const handleDeleteBill = (id: number) => {
         setDeleteBillId(id);
@@ -46,14 +56,21 @@ export default function BillsList({ bills, userId }: { bills: Bill[], userId: st
 
     const handleChangeFilterSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFilterSearch(e.target.value);
+
+        const params = new URLSearchParams(searchParams.toString());
+
+        if (e.target.value === '') {
+            params.delete('title');
+        } else { 
+            params.set('title', e.target.value);
+        }
+
+        router.push(`${pathname}?${params.toString()}`);
     }
     
     const renderedBills = bills?.map((bill) => {
         const recurrentBill = bill.billType === 'recurrent';
-        const isBillActive = recurrentBill || today >= new Date(bill.createdAt) && today <= new Date(bill.finalDate);
-
-        if (isBillActive) {
-            let billValue = bill.value;
+        let billValue = bill.value;
 
             if (bill.billType === 'installment') {
                 billValue = (bill.value / bill.installments);
@@ -73,17 +90,19 @@ export default function BillsList({ bills, userId }: { bills: Bill[], userId: st
                         {billValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </td>
                     <td className="hidden md:table-cell px-6 py-4 text-center">
-                        {recurrentBill ? 'Sim' : 'Não'}
+                        {recurrentBill ? '✅' : '❌'}
                     </td>
                     <td className="hidden md:table-cell px-6 py-4 text-center">
-                        {recurrentBill ? '-' : (new Date(bill.finalDate).toLocaleString('default', { month: 'long' })) + ' / ' + new Date(bill.finalDate).getFullYear()}
+                        {new Date(bill.billDate).toLocaleDateString('default')}
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-4 text-center">
+                        {recurrentBill ? '-' :  ('0' + (new Date(bill.finalDate).getMonth() + 1)).slice(-2) + '/' + new Date(bill.finalDate).getFullYear()}
                     </td>
                     <td className="px-6 py-4 text-center">
                         <button className="cursor-pointer" onClick={() => handleDeleteBill(bill.id)}><IoMdTrash /></button>
                     </td>
                 </tr>
             )
-        }
     });
     
     
@@ -95,18 +114,18 @@ export default function BillsList({ bills, userId }: { bills: Bill[], userId: st
             <div className="flex items-center justify-between mb-4">
                 <p className="flex gap-2 text-3xl font-bold dark:text-white">
                     <span className="hidden md:block">Suas contas do mês de </span>
-                    <span className="capitalize">{month}</span> / {today.getFullYear()}
+                    <span className="capitalize">{longMonth}</span> / {newYear}
                 </p>
 
 
                 <div className="flex items-center gap-3">
                     <FaFilter className="cursor-pointer" onClick={() => setShowFilterBar(!showFilterBar)} />
 
-                    <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={() => handleChangeMonth(selectedMonth - 1)}>
+                    <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={() => navigateMonth(-1)}>
                         <MdArrowBackIos />
                     </button>
 
-                    <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={() => handleChangeMonth(selectedMonth + 1)}>
+                    <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={() => navigateMonth(1)}>
                         <MdArrowForwardIos />
                     </button>
                 </div>
@@ -138,6 +157,9 @@ export default function BillsList({ bills, userId }: { bills: Bill[], userId: st
                             </th>
                             <th scope="col" className="hidden md:table-cell px-6 py-3 text-center">
                                 Recorrente
+                            </th>
+                            <th scope="col" className="hidden md:table-cell px-6 py-3 text-center">
+                                Feita em
                             </th>
                             <th scope="col" className="hidden md:table-cell px-6 py-3 text-center">
                                 Finaliza em

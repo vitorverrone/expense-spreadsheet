@@ -52,11 +52,14 @@ export default async function Dashboard(props: DashboardProps) {
         getUserDataAction()
     ]);
 
+    const currentMonth = searchParams.month || new Date().getMonth().toString();
+    const currentYear = searchParams.year || new Date().getFullYear().toString();
+
     return (
         <>
             <Header username={user.name || 'Usuário'} />
 
-            <BillsList bills={bills} userId={user.id} />
+            <BillsList bills={bills} userId={user.id} month={currentMonth} year={currentYear} />
         </>
     );
 }
