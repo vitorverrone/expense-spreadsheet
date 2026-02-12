@@ -17,12 +17,20 @@ export class UsersService {
 	) { }
 
 	async create(createUserDto: CreateUserDto) {
-		const existingUser = await this.usersRepo.findOneBy({
+		const existingUsername = await this.usersRepo.findOneBy({
 			username: createUserDto.username,
 		});
 
-		if (existingUser) {
-			throw new BadRequestException('Username already exists');
+		const existingEmail = await this.usersRepo.findOneBy({
+			email: createUserDto.email,
+		});
+
+		if (existingUsername) {
+			throw new BadRequestException('Username already in use');
+		}
+
+		if (existingEmail) {
+			throw new BadRequestException('Email already in use');
 		}
 
 		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -34,7 +42,6 @@ export class UsersService {
 
 		return this.usersRepo.save(user);
 	}
-
 
 	async login(loginUserDto: LoginUserDto) {
 		const user = await this.usersRepo.findOne({
