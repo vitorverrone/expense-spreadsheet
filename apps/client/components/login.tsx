@@ -47,7 +47,9 @@ export default function Login() {
 
     return (
         <>
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center h-full flex-wrap flex-col">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-15">Expense Spreadsheet</h1>
+
                 <form className="w-[400px] max-w-full" onSubmit={handleSubmit}>
                     <div className="mb-5">
                         <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>
