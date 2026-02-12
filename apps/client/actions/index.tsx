@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { revalidatePath } from 'next/cache'
 
 import Bill from '../../interfaces/bill.iterface';
+import UserInterface from '../../interfaces/user.interface';
 
 interface AuthTokenPayload {
     id: number;
@@ -73,6 +74,28 @@ export async function getUserDataAction() {
 
     const resJson = await res.json();
     return resJson;
+}
+
+export async function updateUserDataAction(data: UserInterface) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
+    if (!token) {
+        return null;
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+
+    const res = await fetch(`${process.env.API_URL}/api/users/me/${decoded.sub}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    const resJson = await res.json();
+
+    revalidatePath('/dashboard')
+    return { message: resJson.message, success: true};
 }
 
 export async function addBillAction(data: Bill) {

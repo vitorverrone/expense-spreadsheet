@@ -57,7 +57,7 @@ export default async function Dashboard(props: DashboardProps) {
 
     return (
         <>
-            <Header username={user.name || 'Usuário'} />
+            <Header user={user} />
 
             <BillsList bills={bills} userId={user.id} month={currentMonth} year={currentYear} />
         </>

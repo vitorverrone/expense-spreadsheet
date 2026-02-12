@@ -17,7 +17,7 @@ export class User {
     @Column({ unique: true })
     email: string;
 
-    @Column()
+    @Column({ type: 'decimal', scale: 2, default: 0 })
     salary: number;
 
     @Column({ nullable: true })
