@@ -3,6 +3,7 @@ export default interface UserInterface {
     name: string;
     email: string;
     username: string;
-    salary: number;
-    salarySubtraction: boolean;
+    password?: string;
+    salary?: number;
+    salarySubtraction?: boolean;
 }

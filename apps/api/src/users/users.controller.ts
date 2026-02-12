@@ -11,7 +11,7 @@ export class UsersController {
     @Post()
     async create(@Body() createUserDto: CreateUserDto) {
         const user = await this.usersService.create(createUserDto);
-        return { message: 'Logged in successfully', user };
+        return { message: 'Create user successfully' };
     }
 
     @Post('/logout')

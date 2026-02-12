@@ -19,13 +19,29 @@ function isAuthTokenPayload(payload: unknown): payload is AuthTokenPayload {
     );
 }
 
+export async function createUserAction(data: UserInterface) {
+    const res = await fetch(`${process.env.API_URL}/api/users`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    const resJson = await res.json();
+
+    if (!res.ok) {
+        return { message: resJson.message, success: false };
+    }
+
+    return { message: resJson.message, success: true};
+}
+
 export async function loginAction(data: FormData) {
     const cookieStore = await cookies();
 
     const res = await fetch(`${process.env.API_URL}/api/users/login`, {
         method: 'POST',
         body: JSON.stringify({
-            email: data.get('username'),
+            username: data.get('username'),
             password: data.get('password'),
         }),
         headers: { 'Content-Type': 'application/json' }
