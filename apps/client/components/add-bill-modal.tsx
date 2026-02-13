@@ -2,6 +2,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { currency } from 'remask';
 import toast from 'react-hot-toast';
 
+import { calculateFinalDate } from '@/utils/date-helpers';
 import Input from "./input-form";
 import Modal from "./modal";
 import { addBillAction } from '@/actions';
@@ -26,8 +27,7 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        const date = new Date(data.billDate);
-        const finalDate = new Date(selectedType === 'installment' ? new Date(date).setMonth(date.getMonth() + Number(data.installments - 1)) : tomorrow).toISOString().split('T')[0];
+        const finalDate = calculateFinalDate(data.billDate, selectedType, data.installments);
 
         data.value = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: data.value.toString() });
 
