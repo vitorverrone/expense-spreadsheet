@@ -4,6 +4,9 @@
         "dev": {
             "cache": false
         },
+        "test:ui": {
+            "cache": false
+        },
         "build": {
             "dependsOn": [
                 "^build"

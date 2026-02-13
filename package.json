@@ -1,5 +1,7 @@
 {
   "scripts": {
+    "e2e": "npx playwright test --ui",
+    "test:ui": "turbo run test:ui",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "start": "node apps/api/dist/main"
