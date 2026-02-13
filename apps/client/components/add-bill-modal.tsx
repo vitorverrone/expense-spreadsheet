@@ -97,7 +97,7 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
                                     { id: 'recurrent', label: 'Recorrente', icon: '🔄' }
                                 ].map((type) => (
                                     <div className="flex items-center h-5" key={type.id}>
-                                        <input id={`billType${type.id}`} type="radio" value={type.id} name="billType" className="w-4 h-4 border border-gray-300 rounded-sm bg-gray-50 dark:bg-gray-700 dark:border-gray-600" onChange={() => field.onChange(type.id)} />
+                                        <input id={`billType${type.id}`} type="radio" checked={field.value === type.id} name="billType" className="w-4 h-4 border border-gray-300 rounded-sm bg-gray-50 dark:bg-gray-700 dark:border-gray-600" onChange={() => field.onChange(type.id)} />
                                         <label htmlFor={`billType${type.id}`} className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{type.label} {type.icon}</label>
                                     </div>
                                 ))}
