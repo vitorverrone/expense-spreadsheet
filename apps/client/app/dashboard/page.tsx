@@ -52,7 +52,7 @@ export default async function Dashboard(props: DashboardProps) {
         getUserDataAction()
     ]);
 
-    const currentMonth = searchParams.month || new Date().getMonth().toString();
+    const currentMonth = searchParams.month ? (parseInt(searchParams.month) - 1).toString() : new Date().getMonth().toString();
     const currentYear = searchParams.year || new Date().getFullYear().toString();
 
     return (

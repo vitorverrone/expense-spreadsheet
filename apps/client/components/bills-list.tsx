@@ -44,7 +44,7 @@ export default function BillsList({ bills, userId, month, year }: { bills: Bill[
         setMonth(navigatedDate.toLocaleString('default', { month: 'long' }))        
         setYear(navigatedDate.getFullYear());
         
-        params.set('month', newMonth.toString());
+        params.set('month', (newMonth + 1).toString());
         params.set('year', newYear.toString());
         router.push(`${pathname}?${params.toString()}`);
     };

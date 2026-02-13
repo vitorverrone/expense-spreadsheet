@@ -29,7 +29,7 @@ export class BillsService {
     async getBillsFromUser(userId: number, month?: number, year?: number, title?: string) {
         const today = new Date();
         const targetYear = year ? Number(year) : today.getFullYear();
-        const targetMonth = month ? Number(month) : today.getMonth();
+        const targetMonth = month ? Number(month - 1) : today.getMonth();
         const startOfMonth = new Date(targetYear, targetMonth, 1);
         const endOfMonth = new Date(targetYear, targetMonth + 1, 0);
 
