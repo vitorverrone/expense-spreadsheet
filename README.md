@@ -1,72 +1,64 @@
 # 📊 Expense Spreadsheet V3
 
-<p>Este é um monorepo gerenciado pelo <a href="https://turbo.build/">Turborepo</a>, contendo o ecossistema completo da aplicação de planilhas de gastos.</p>
+Este é um monorepo gerenciado pelo [Turborepo](https://turbo.build/), contendo o ecossistema completo da aplicação de planilhas de gastos.
 
-<hr />
+---
 
 ## 📂 Estrutura do Projeto
 
-<ul>
-  <li><strong>apps/api</strong>: Backend construído com NestJS.</li>
-  <li><strong>apps/client</strong>: Frontend construído com Next.js.</li>
-  <li><strong>apps/interfaces</strong>: Contratos e tipos compartilhados (TypeScript).</li>
-  <li><strong>client-old</strong>: Backup da versão anterior do cliente.</li>
-</ul>
+O projeto é dividido em três pacotes principais dentro da pasta `apps/`:
 
-<hr />
+- **`apps/api`**: Backend robusto construído com **NestJS 11**, TypeORM e PostgreSQL.
+- **`apps/client`**: Frontend moderno construído com **Next.js 16** (App Router), **React 19** e **Tailwind CSS 4**.
+- **`apps/interfaces`**: Contratos e tipos TypeScript compartilhados entre o Frontend e o Backend.
 
-## 🛠️ Pré-requisitos
+---
 
-Antes de começar, você precisará ter instalado:
-<ul>
-  <li><strong>Node.js</strong> (Recomendado v18 ou superior)</li>
-  <li><strong>npm / pnpm / yarn</strong></li>
-</ul>
+## 🛠️ Tecnologias Principais
 
-<hr />
+- **Monorepo**: Turborepo
+- **Backend**: NestJS 11, TypeORM, JWT Auth, Class Validator
+- **Frontend**: Next.js 16 (Server Components & Actions), React 19, Tailwind CSS 4, React Query
+- **Banco de Dados**: PostgreSQL
+- **Testes**: Playwright (E2E), Vitest (Client), Jest (API)
 
-## 🚀 Como começar
+---
+
+## 🚀 Como Começar
 
 ### 1. Instalar dependências
 Na raiz do projeto, execute:
-<pre><code>npm install</code></pre>
+```bash
+npm install
+```
 
 ### 2. Configurar variáveis de ambiente
-Certifique-se de configurar os arquivos <code>.env</code> tanto na raiz quanto dentro de cada app em <code>apps/</code>. Use os arquivos <code>.env.example</code> como base.
+Configure os arquivos `.env` na raiz e dentro de cada app (`apps/api` e `apps/client`). Utilize os arquivos `.env.example` como guia.
 
 ### 3. Rodar o projeto em desenvolvimento
-Para subir o Client e a API simultaneamente em modo watch:
-<pre><code>npx turbo dev</code></pre>
+Para iniciar o Client e a API simultaneamente com hot reload:
+```bash
+npm run dev
+```
 
-### 4. Build
+### 4. Build de produção
 Para gerar a versão de produção de todos os apps:
-<pre><code>npx turbo build</code></pre>
+```bash
+npm run build
+```
 
-<hr />
+---
 
-## 📜 Comandos Disponíveis (Turborepo)
+## 📜 Comandos Disponíveis
 
-<table>
-  <thead>
-    <tr>
-      <th>Comando</th>
-      <th>Descrição</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>dev</code></td>
-      <td>Inicia todos os apps em modo de desenvolvimento (cache desativado).</td>
-    </tr>
-    <tr>
-      <td><code>build</code></td>
-      <td>Compila todos os apps para produção (outputs em <code>dist/</code>).</td>
-    </tr>
-  </tbody>
-</table>
+| Comando | Descrição |
+| :--- | :--- |
+| `npm run dev` | Inicia todos os apps em modo de desenvolvimento via Turbo. |
+| `npm run build` | Compila todos os pacotes para produção. |
+| `npm run e2e` | Executa os testes de ponta a ponta com Playwright. |
+| `npm run test:ui` | Abre a interface de testes do Vitest no Client. |
 
-<br />
+---
 
-<blockquote>
-  <strong>Nota:</strong> Como a pasta <code>apps/interfaces</code> contém definições globais, certifique-se de que os arquivos <code>bill.interface.ts</code> e <code>user.interface.ts</code> sejam importados corretamente nos demais serviços.
-</blockquote>
+> [!IMPORTANT]
+> As interfaces em `apps/interfaces` garantem a consistência de tipos em todo o projeto. Sempre utilize as interfaces compartilhadas ao criar novos endpoints ou componentes.
