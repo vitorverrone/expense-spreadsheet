@@ -3,15 +3,15 @@ import { CreateUserDto } from './create-user.dto';
 import { IsBoolean, IsEmail, IsNumber, IsString } from 'class-validator';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
-    @IsEmail()
-    email: string;
+  @IsEmail()
+  email: string;
 
-    @IsString()
-    username: string;
+  @IsString()
+  username: string;
 
-    @IsNumber()
-    salary: number;
+  @IsNumber()
+  salary: number;
 
-    @IsBoolean()
-    salarySubtraction: boolean;
+  @IsBoolean()
+  salarySubtraction: boolean;
 }

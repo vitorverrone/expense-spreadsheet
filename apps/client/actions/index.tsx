@@ -32,7 +32,7 @@ export async function createUserAction(data: UserInterface) {
         return { message: resJson.message, success: false };
     }
 
-    return { message: resJson.message, success: true};
+    return { message: resJson.message, success: true };
 }
 
 export async function loginAction(data: FormData) {
@@ -64,7 +64,7 @@ export async function loginAction(data: FormData) {
         path: '/',
     });
 
-    return { message: resJson.message, success: true};
+    return { message: resJson.message, success: true };
 }
 
 export async function logoutAction() {
@@ -81,11 +81,12 @@ export async function getUserDataAction() {
         return null;
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-
-    const res = await fetch(`${process.env.API_URL}/api/users/me/${decoded.sub}`, {
+    const res = await fetch(`${process.env.API_URL}/api/users/me`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
     });
 
     const resJson = await res.json();
@@ -100,25 +101,32 @@ export async function updateUserDataAction(data: UserInterface) {
         return null;
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-
-    const res = await fetch(`${process.env.API_URL}/api/users/me/${decoded.sub}`, {
+    const res = await fetch(`${process.env.API_URL}/api/users/me`, {
         method: 'PATCH',
         body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
     });
 
     const resJson = await res.json();
 
     revalidatePath('/dashboard')
-    return { message: resJson.message, success: true};
+    return { message: resJson.message, success: true };
 }
 
 export async function addBillAction(data: Bill) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
     const res = await fetch(`${process.env.API_URL}/api/bills`, {
         method: 'POST',
         body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
     });
 
     const resJson = await res.json();
@@ -128,13 +136,19 @@ export async function addBillAction(data: Bill) {
     }
 
     revalidatePath('/dashboard')
-    return { message: resJson.message, success: true};
+    return { message: resJson.message, success: true };
 }
 
 export async function deleteBillAction(billId: number) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
     const res = await fetch(`${process.env.API_URL}/api/bills/${billId}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
     });
 
     const resJson = await res.json();
@@ -145,5 +159,5 @@ export async function deleteBillAction(billId: number) {
 
     revalidatePath('/dashboard');
 
-    return { message: resJson.message, success: true};
+    return { message: resJson.message, success: true };
 }

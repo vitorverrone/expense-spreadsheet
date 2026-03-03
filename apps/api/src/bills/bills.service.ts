@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateBillDto } from './dto/create-bill.dto';
 import { UpdateBillDto } from './dto/update-bill.dto';
@@ -7,66 +11,79 @@ import { ILike, MoreThanOrEqual, Repository } from 'typeorm';
 
 @Injectable()
 export class BillsService {
-    constructor(
-        @InjectRepository(Bill)
-        private billsRepo: Repository<Bill>
-    ) { }
+  constructor(
+    @InjectRepository(Bill)
+    private billsRepo: Repository<Bill>,
+  ) {}
 
-    async create(createBillDto: CreateBillDto) {
-        const bill = await this.billsRepo.create(createBillDto);
+  async create(userId: number, createBillDto: CreateBillDto) {
+    const bill = this.billsRepo.create({
+      ...createBillDto,
+      userId,
+    });
 
-        if (!bill) {
-            throw new BadRequestException('Error creating bill');
-        }
+    return this.billsRepo.save(bill);
+  }
 
-        return this.billsRepo.save(bill);
-    }
+  findAll() {
+    return this.billsRepo.find();
+  }
 
-    findAll() {
-        return `This action returns all bills`;
-    }
+  async getBillsFromUser(
+    userId: number,
+    month?: number,
+    year?: number,
+    title?: string,
+  ) {
+    const today = new Date();
+    const targetYear = year ? Number(year) : today.getFullYear();
+    const targetMonth = month ? Number(month) - 1 : today.getMonth();
+    const startOfMonth = new Date(targetYear, targetMonth, 1);
+    const endOfMonth = new Date(targetYear, targetMonth + 1, 0);
 
-    async getBillsFromUser(userId: number, month?: number, year?: number, title?: string) {
-        const today = new Date();
-        const targetYear = year ? Number(year) : today.getFullYear();
-        const targetMonth = month ? Number(month - 1) : today.getMonth();
-        const startOfMonth = new Date(targetYear, targetMonth, 1);
-        const endOfMonth = new Date(targetYear, targetMonth + 1, 0);
+    const query = this.billsRepo
+      .createQueryBuilder('bill')
+      .where('bill.userId = :userId', { userId });
 
-        const query = this.billsRepo.createQueryBuilder('bill').where('bill.userId = :userId', { userId });
- 
-        query.andWhere(
-        `(
+    query.andWhere(
+      `(
             (bill.billType = 'normal' AND bill.billDate >= :startOfMonth AND bill.billDate <= :endOfMonth)
             OR
             (bill.billType = 'installment' AND bill.billDate <= :endOfMonth AND bill.finalDate >= :startOfMonth)
             OR
             (bill.billType = 'recurrent')
         )`,
-            {
-                startOfMonth,
-                endOfMonth,
-            }
-        );
+      {
+        startOfMonth,
+        endOfMonth,
+      },
+    );
 
-        if (title) {
-            query.andWhere('bill.title ILike :title', { title: `%${title}%` });
-        }
-
-        return await query.orderBy('bill.title', 'ASC').getMany();
+    if (title) {
+      query.andWhere('bill.title ILike :title', { title: `%${title}%` });
     }
 
-    update(id: number, updateBillDto: UpdateBillDto) {
-        return `This action updates a #${id} bill`;
+    return await query.orderBy('bill.title', 'ASC').getMany();
+  }
+
+  async update(id: number, userId: number, updateBillDto: UpdateBillDto) {
+    const bill = await this.billsRepo.findOne({ where: { id, userId } });
+
+    if (!bill) {
+      throw new NotFoundException('Bill not found or access denied');
     }
 
-    async remove(id: number) {
-        const bill = await this.billsRepo.findOne({ where: { id } });
+    Object.assign(bill, updateBillDto);
+    return this.billsRepo.save(bill);
+  }
 
-        if (!bill) {
-            throw new NotFoundException('Bill');
-        }
+  async remove(id: number, userId: number) {
+    const bill = await this.billsRepo.findOne({ where: { id, userId } });
 
-        return this.billsRepo.remove(bill);
+    if (!bill) {
+      throw new NotFoundException('Bill not found or access denied');
     }
+
+    return this.billsRepo.remove(bill);
+  }
 }

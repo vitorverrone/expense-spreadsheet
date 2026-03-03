@@ -1,25 +1,21 @@
-import { IsString, IsDate, IsNumber } from "class-validator";
-import { CreateDateColumn } from "typeorm";
+import { IsString, IsDate, IsNumber } from 'class-validator';
 
 export class CreateBillDto {
-    @IsNumber()
-    userId: number;
+  @IsString()
+  title: string;
 
-    @IsString()
-    title: string;
+  @IsNumber()
+  value: number;
 
-    @IsNumber()
-    value: number;
+  @IsNumber()
+  installments: number;
 
-    @IsNumber()
-    installments: number;
+  @IsString()
+  billType: string;
 
-    @IsString()
-    billType: string;
+  @IsDate()
+  finalDate: Date;
 
-    @IsDate()
-    finalDate: Date;
-
-    @IsDate()
-    billDate: Date;
+  @IsDate()
+  billDate: Date;
 }

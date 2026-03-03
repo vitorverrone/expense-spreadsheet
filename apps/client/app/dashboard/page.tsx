@@ -8,7 +8,7 @@ import { getUserDataAction } from '@/actions';
 
 interface DashboardProps {
     searchParams: Promise<{
-        month?: string; 
+        month?: string;
         year?: string;
         title?: string
     }>;
@@ -22,8 +22,7 @@ async function getBills(params: { month?: string; year?: string, title?: string 
         return null;
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    const url = new URL(`${process.env.API_URL}/api/bills/${decoded.sub}`);
+    const url = new URL(`${process.env.API_URL}/api/bills`);
 
     if (params.month) url.searchParams.append('month', params.month);
     if (params.year) url.searchParams.append('year', params.year);
@@ -31,7 +30,10 @@ async function getBills(params: { month?: string; year?: string, title?: string 
 
     const res = await fetch(url, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
     });
 
     const resJson = await res.json();

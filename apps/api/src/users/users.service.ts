@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,92 +15,100 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-	constructor(
-		@InjectRepository(User)
-		private readonly usersRepo: Repository<User>,
-		private readonly jwtService: JwtService
-	) { }
+  constructor(
+    @InjectRepository(User)
+    private readonly usersRepo: Repository<User>,
+    private readonly jwtService: JwtService,
+  ) {}
 
-	async create(createUserDto: CreateUserDto) {
-		const existingUsername = await this.usersRepo.findOneBy({
-			username: createUserDto.username,
-		});
+  async create(createUserDto: CreateUserDto) {
+    const existingUsername = await this.usersRepo.findOneBy({
+      username: createUserDto.username,
+    });
 
-		const existingEmail = await this.usersRepo.findOneBy({
-			email: createUserDto.email,
-		});
+    const existingEmail = await this.usersRepo.findOneBy({
+      email: createUserDto.email,
+    });
 
-		if (existingUsername) {
-			throw new BadRequestException('Username already in use');
-		}
+    if (existingUsername) {
+      throw new BadRequestException('Username already in use');
+    }
 
-		if (existingEmail) {
-			throw new BadRequestException('Email already in use');
-		}
+    if (existingEmail) {
+      throw new BadRequestException('Email already in use');
+    }
 
-		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
-		const user = this.usersRepo.create({
-			...createUserDto,
-			password: hashedPassword,
-		});
+    const user = this.usersRepo.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
 
-		return this.usersRepo.save(user);
-	}
+    return this.usersRepo.save(user);
+  }
 
-	async login(loginUserDto: LoginUserDto) {
-		const user = await this.usersRepo.findOne({
-			where: { username: loginUserDto.username },
-			select: ['id', 'username', 'password'] // Forçamos a senha apenas aqui
-		});
+  async login(loginUserDto: LoginUserDto) {
+    const user = await this.usersRepo.findOne({
+      where: { username: loginUserDto.username },
+      select: ['id', 'username', 'password'], // Forçamos a senha apenas aqui
+    });
 
-		if (!user) {
-			throw new UnauthorizedException('Invalid username or password');
-		}
+    if (!user) {
+      throw new UnauthorizedException('Invalid username or password');
+    }
 
-		const isPasswordValid = await bcrypt.compare(
-			loginUserDto.password,
-			user.password,
-		);
+    const isPasswordValid = await bcrypt.compare(
+      loginUserDto.password,
+      user.password,
+    );
 
-		if (!isPasswordValid) {
-			throw new UnauthorizedException('Invalid username or password');
-		}
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid username or password');
+    }
 
-		const token = this.jwtService.sign({ sub: user.id, username: user.username});
+    const token = this.jwtService.sign({
+      sub: user.id,
+      username: user.username,
+    });
 
-		return token;
-	}
+    return { user, token };
+  }
 
-	findAll() {
-		return this.usersRepo.find();
-	}
+  findAll() {
+    return this.usersRepo.find();
+  }
 
-	findOne(id: number) {
-		return this.usersRepo.findOneBy({ id });
-	}
+  findOne(id: number) {
+    return this.usersRepo.findOneBy({ id });
+  }
 
-	async update(id: number, updateUserDto: UpdateUserDto) {
-		const user = await this.findOne(id);
-		
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.findOne(id);
 
-		const { password, ...updateData } = updateUserDto;
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
-		await this.usersRepo.update(id, updateData);
+    const { password, ...updateData } = updateUserDto;
 
-		return this.findOne(id);
-	}
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      Object.assign(user, { ...updateData, password: hashedPassword });
+    } else {
+      Object.assign(user, updateData);
+    }
 
-	async remove(id: number) {
-		const user = await this.usersRepo.findOneBy({ id });
+    return this.usersRepo.save(user);
+  }
 
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
+  async remove(id: number) {
+    const user = await this.usersRepo.findOneBy({ id });
 
-		return this.usersRepo.remove(user);
-	}
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.usersRepo.remove(user);
+  }
 }
