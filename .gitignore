@@ -19,6 +19,8 @@ node_modules/
 .env.*
 apps/client/.env*
 apps/api/.env*
+!apps/client/.env.example
+!apps/api/.env.example
 
 # Next.js
 apps/client/.next/

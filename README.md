@@ -33,7 +33,22 @@ npm install
 ```
 
 ### 2. Configurar variáveis de ambiente
-Configure os arquivos `.env` na raiz e dentro de cada app (`apps/api` e `apps/client`). Utilize os arquivos `.env.example` como guia.
+Copie os arquivos de exemplo e preencha com seus valores:
+
+**Linux/macOS:**
+```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/client/.env.example apps/client/.env.local
+```
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item apps/api/.env.example apps/api/.env
+Copy-Item apps/client/.env.example apps/client/.env.local
+```
+
+> [!WARNING]
+> Em produção, defina `NODE_ENV=production` para desabilitar o `synchronize` automático do TypeORM e configure o CORS na API com a origem correta do seu frontend.
 
 ### 3. Rodar o projeto em desenvolvimento
 Para iniciar o Client e a API simultaneamente com hot reload:
