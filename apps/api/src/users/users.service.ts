@@ -19,7 +19,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly usersRepo: Repository<User>,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
     const existingUsername = await this.usersRepo.findOneBy({
@@ -51,7 +51,7 @@ export class UsersService {
   async login(loginUserDto: LoginUserDto) {
     const user = await this.usersRepo.findOne({
       where: { username: loginUserDto.username },
-      select: ['id', 'username', 'password'], // Forçamos a senha apenas aqui
+      select: ['id', 'username', 'password'],
     });
 
     if (!user) {
