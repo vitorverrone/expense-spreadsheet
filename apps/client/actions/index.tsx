@@ -1,12 +1,12 @@
 'use server';
 
-import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
-import { revalidatePath } from 'next/cache'
-
+import { cookies } from 'next/headers';
 import { Bill } from '../../interfaces/bill.iterface';
 import UserInterface from '../../interfaces/user.interface';
 import { UserCreateUpdateInterface } from '../../interfaces/user.create.update.interface';
+import { apiDelete, apiGet, apiPatch, apiPost } from '@/lib/api.server';
+import { revalidatePath } from 'next/cache';
 
 interface AuthTokenPayload {
     sub: number;
@@ -26,19 +26,12 @@ function isAuthTokenPayload(payload: unknown): payload is AuthTokenPayload {
 }
 
 export async function createUserAction(data: UserCreateUpdateInterface): Promise<ResponseInterface> {
-    const res = await fetch(`${process.env.API_URL}/api/users`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
-    });
-
-    const resJson = await res.json();
-
-    if (!res.ok) {
-        return { message: resJson.message, success: false };
+    try {
+        const resJson = await apiPost<{ message: string }>('/api/users', data);
+        return { message: resJson.message, success: true };
+    } catch (e) {
+        return { message: (e as Error).message, success: false };
     }
-
-    return { message: resJson.message, success: true };
 }
 
 export async function loginAction(data: FormData): Promise<ResponseInterface | null> {
@@ -73,6 +66,7 @@ export async function loginAction(data: FormData): Promise<ResponseInterface | n
     return { message: resJson.message, success: true };
 }
 
+
 export async function logoutAction() {
     const cookieStore = await cookies();
 
@@ -80,90 +74,55 @@ export async function logoutAction() {
 }
 
 export async function getUserDataAction(): Promise<UserInterface | null> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
+    try {
+        return await apiGet<UserInterface>('/api/users/me');
+    } catch {
         return null;
     }
-
-    const res = await fetch(`${process.env.API_URL}/api/users/me`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    const resJson = await res.json();
-    return resJson;
 }
 
 export async function updateUserDataAction(data: UserCreateUpdateInterface): Promise<ResponseInterface | null> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-        return null;
+    try {
+        const resJson = await apiPatch<{ message: string }>('/api/users/me', data);
+        return { message: resJson.message, success: true };
+    } catch (e) {
+        return { message: (e as Error).message, success: false };
     }
-
-    const res = await fetch(`${process.env.API_URL}/api/users/me`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    const resJson = await res.json();
-
-    revalidatePath('/dashboard')
-    return { message: resJson.message, success: true };
 }
 
 export async function addBillAction(data: Bill): Promise<ResponseInterface> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    const res = await fetch(`${process.env.API_URL}/api/bills`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    const resJson = await res.json();
-
-    if (!res.ok) {
-        return { message: resJson.message, success: false };
+    try {
+        const resJson = await apiPost<{ message: string }>('/api/bills', data);
+        revalidatePath('/dashboard');
+        return { message: resJson.message, success: true };
+    } catch (e) {
+        return { message: (e as Error).message, success: false };
     }
-
-    revalidatePath('/dashboard')
-    return { message: resJson.message, success: true };
 }
 
 export async function deleteBillAction(billId: number): Promise<ResponseInterface> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    const res = await fetch(`${process.env.API_URL}/api/bills/${billId}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    const resJson = await res.json();
-
-    if (!res.ok) {
-        return { message: resJson.message, success: false };
+    try {
+        const resJson = await apiDelete<{ message: string }>(`/api/bills/${billId}`);
+        revalidatePath('/dashboard');
+        return { message: resJson.message, success: true };
+    } catch (e) {
+        return { message: (e as Error).message, success: false };
     }
-
-    revalidatePath('/dashboard');
-
-    return { message: resJson.message, success: true };
 }
+
+export async function getBillsAction(params: { month?: string; year?: string; title?: string }): Promise<Bill[] | null> {
+    try {
+        const query = new URLSearchParams();
+
+        if (params.month) query.append('month', params.month);
+        if (params.year) query.append('year', params.year);
+        if (params.title) query.append('title', params.title);
+
+        const qs = query.toString();
+
+        return await apiGet<Bill[]>(`/api/bills${qs ? '?' + qs : ''}`);
+    } catch {
+        return null;
+    }
+}
+

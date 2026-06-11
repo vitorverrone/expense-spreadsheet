@@ -7,11 +7,11 @@ import toast from 'react-hot-toast';
 import { calculateFinalDate } from '@/utils/date-helpers';
 import Input from "./input-form";
 import Modal from "./modal";
-import { addBillAction } from '@/actions';
 import { Bill } from '../../interfaces/bill.iterface';
 import { BillType } from '../../interfaces/bill.iterface';
 import Loading from './loading';
 import { handleCurrencyChange } from '@/utils/currency-helpers';
+import { useAddBill } from '@/lib/hooks/use-bills';
 
 interface AddBillModalProps {
     showBillModal: boolean;
@@ -20,7 +20,8 @@ interface AddBillModalProps {
 }
 
 export default function AddBillModal({ showBillModal, setShowBillModal, userId }: AddBillModalProps) {
-    const { control, register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<Bill>({
+    const addBill = useAddBill();
+    const { control, register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<Bill>({
         defaultValues: { installments: 0, billType: 'normal' as BillType }
     });
 
@@ -28,8 +29,6 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
 
     const handleOnSubmit = async (data: Bill) => {
         const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
         const finalDate = calculateFinalDate(data.billDate, selectedType, data.installments);
 
         data.value = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: data.value.toString() });
@@ -41,7 +40,7 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
             finalDate
         }
 
-        const result = await addBillAction(bill);
+        const result = await addBill.mutateAsync(bill);
 
         if (!result.success) {
             toast.error(result?.message ?? 'Ocorreu um erro');
@@ -59,7 +58,7 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
     };
 
     const modalFooterContent = (
-        <button type="button" disabled={isSubmitting} onClick={handleSubmit(handleOnSubmit)} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">{isSubmitting ? <Loading /> : 'Send'}</button>
+        <button type="button" disabled={addBill.isPending} onClick={handleSubmit(handleOnSubmit)} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">{addBill.isPending ? <Loading /> : 'Send'}</button>
     )
 
     return (
