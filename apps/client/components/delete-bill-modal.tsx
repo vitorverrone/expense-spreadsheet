@@ -1,3 +1,5 @@
+'use client'
+
 import { deleteBillAction } from "@/actions";
 import className from "classnames";
 import toast from "react-hot-toast";
@@ -11,11 +13,11 @@ interface DeleteBillModalProps {
 }
 
 export default function DeleteBillModal({ showDeleteBillModal, setShowDeleteBillModal, billId }: DeleteBillModalProps) {
-     const handleDeleteBill = async () => {
+    const handleDeleteBill = async () => {
         const result = await deleteBillAction(billId);
 
         if (!result?.success) {
-            toast.error(result?.message);
+            toast.error(result?.message ?? 'Ocorreu um erro');
             return;
         }
 

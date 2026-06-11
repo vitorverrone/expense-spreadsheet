@@ -24,7 +24,7 @@ export default function CreateAccount() {
             const result = await createUserAction(data);
 
             if (!result?.success) {
-                toast.error(result?.message);
+                toast.error(result?.message ?? 'Ocorreu um erro');
                 return;
             }
 
@@ -64,7 +64,7 @@ export default function CreateAccount() {
 
                     <div className="mb-5">
                         <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Senha</label>
-                        <Input 
+                        <Input
                             type="password"
                             {...register('password', {
                                 required: 'Password is required',

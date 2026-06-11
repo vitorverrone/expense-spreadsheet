@@ -1,3 +1,5 @@
+'use client'
+
 import { useForm, Controller } from 'react-hook-form';
 import { currency } from 'remask';
 import toast from 'react-hot-toast';
@@ -41,7 +43,7 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
         const result = await addBillAction(bill);
 
         if (!result.success) {
-            toast.error(result.message);
+            toast.error(result?.message ?? 'Ocorreu um erro');
             return;
         }
 

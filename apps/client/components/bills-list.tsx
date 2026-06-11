@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { MdArrowForwardIos, MdArrowBackIos, MdOutlineRemoveRedEye } from "react-icons/md";
 import { FaFilter } from "react-icons/fa";
@@ -19,20 +19,21 @@ export default function BillsList({ bills, month, year }: { bills: Bill[], month
     const searchParams = useSearchParams();
 
     const today = new Date(Number(year), Number(month), 1);
-    const [longMonth, setMonth] = useState(today.toLocaleString('default', { month: 'long' }));
-    const [newYear, setYear] = useState(today.getFullYear());
     const [showFilterBar, setShowFilterBar] = useState(false);
-    const [filterSearch, setFilterSearch] = useState('');
+    const [filterSearch, setFilterSearch] = useState(searchParams.get('title') ?? '');
     const [showAddBillModal, setShowAddBillModal] = useState(false);
     const [showDeleteBillModal, setShowDeleteBillModal] = useState(false);
     const [deleteBillId, setDeleteBillId] = useState(0);
 
-    if (!user) return null;
+    const longMonth = useMemo(() =>
+        new Date(Number(year), Number(month), 1).toLocaleString('default', { month: 'long' })
+        , [month, year]);
 
-    const userId = user.id;
-    let monthTotal = 0;
+    const newYear = useMemo(() =>
+        today.getFullYear()
+        , [month, year]);
 
-    const navigateMonth = (step: number) => {
+    const navigateMonth = useCallback((step: number) => {
         let newMonth = parseInt(month) + step;
         let newYear = parseInt(year);
 
@@ -47,20 +48,17 @@ export default function BillsList({ bills, month, year }: { bills: Bill[], month
         const navigatedDate = new Date(newYear, newMonth, 1);
         const params = new URLSearchParams(searchParams.toString());
 
-        setMonth(navigatedDate.toLocaleString('default', { month: 'long' }))
-        setYear(navigatedDate.getFullYear());
-
         params.set('month', (newMonth + 1).toString());
         params.set('year', newYear.toString());
         router.push(`${pathname}?${params.toString()}`);
-    };
+    }, [month, year, searchParams, router, pathname]);
 
-    const handleDeleteBill = (id: number) => {
+    const handleDeleteBill = useCallback((id: number) => {
         setDeleteBillId(id);
         setShowDeleteBillModal(true);
-    }
+    }, []);
 
-    const handleChangeFilterSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChangeFilterSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFilterSearch(e.target.value);
 
         const params = new URLSearchParams(searchParams.toString());
@@ -72,7 +70,19 @@ export default function BillsList({ bills, month, year }: { bills: Bill[], month
         }
 
         router.push(`${pathname}?${params.toString()}`);
-    }
+    }, [searchParams, router, pathname]);
+
+    if (!user) return null;
+
+    const userId = user.id;
+    let monthTotal = 0;
+
+    const showSubtractionTotal = () => {
+        const salary = user.salary ?? 0;
+        const balance = salary - monthTotal;
+        return balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    };
+
 
     const renderedBills = bills?.map((bill) => {
         const recurrentBill = bill.billType === 'recurrent';
@@ -185,9 +195,8 @@ export default function BillsList({ bills, month, year }: { bills: Bill[], month
                 </button>
 
                 <h3 className="flex gap-5 text-3xl font-bold dark:text-white text-right">
-                    {/* <span className="hidden md:block">{userData?.user.salarySubtraction ? 'Saldo' : 'Total'} do mês:</span> */}
-                    {/* {userData?.user.salarySubtraction ? showSubtractionTotal() : monthTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} */}
-                    {monthTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    <span className="hidden md:block">{user.salarySubtraction ? 'Saldo' : 'Total'} do mês:</span>
+                    {user.salarySubtraction ? showSubtractionTotal() : monthTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </h3>
             </div>
         </div>

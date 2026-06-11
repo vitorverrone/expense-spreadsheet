@@ -1,3 +1,5 @@
+'use client'
+
 import className from 'classnames';
 import { GoX } from "react-icons/go";
 import { useEffect } from 'react';
