@@ -11,8 +11,15 @@
             "dependsOn": [
                 "^build"
             ],
+            "env": [
+                "API_URL",
+                "JWT_SECRET",
+                "NEXT_PUBLIC_API_URL",
+                "NODE_ENV"
+            ],
             "outputs": [
-                "dist/**"
+                "dist/**",
+                ".next/**"
             ]
         }
     }
