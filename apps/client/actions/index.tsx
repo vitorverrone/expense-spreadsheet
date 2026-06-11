@@ -4,13 +4,19 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { revalidatePath } from 'next/cache'
 
-import Bill from '../../interfaces/bill.iterface';
+import { Bill } from '../../interfaces/bill.iterface';
 import UserInterface from '../../interfaces/user.interface';
+import { UserCreateUpdateInterface } from '../../interfaces/user.create.update.interface';
 
 interface AuthTokenPayload {
-    id: number;
+    sub: number;
     username: string;
-    user: Array<any>;
+    user: UserInterface;
+}
+
+interface ResponseInterface {
+    message: string;
+    success: boolean;
 }
 
 function isAuthTokenPayload(payload: unknown): payload is AuthTokenPayload {
@@ -19,7 +25,7 @@ function isAuthTokenPayload(payload: unknown): payload is AuthTokenPayload {
     );
 }
 
-export async function createUserAction(data: UserInterface) {
+export async function createUserAction(data: UserCreateUpdateInterface): Promise<ResponseInterface> {
     const res = await fetch(`${process.env.API_URL}/api/users`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -35,7 +41,7 @@ export async function createUserAction(data: UserInterface) {
     return { message: resJson.message, success: true };
 }
 
-export async function loginAction(data: FormData) {
+export async function loginAction(data: FormData): Promise<ResponseInterface | null> {
     const cookieStore = await cookies();
 
     const res = await fetch(`${process.env.API_URL}/api/users/login`, {
@@ -73,7 +79,7 @@ export async function logoutAction() {
     cookieStore.delete('token');
 }
 
-export async function getUserDataAction() {
+export async function getUserDataAction(): Promise<UserInterface | null> {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -93,7 +99,7 @@ export async function getUserDataAction() {
     return resJson;
 }
 
-export async function updateUserDataAction(data: UserInterface) {
+export async function updateUserDataAction(data: UserCreateUpdateInterface): Promise<ResponseInterface | null> {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -116,7 +122,7 @@ export async function updateUserDataAction(data: UserInterface) {
     return { message: resJson.message, success: true };
 }
 
-export async function addBillAction(data: Bill) {
+export async function addBillAction(data: Bill): Promise<ResponseInterface> {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -139,7 +145,7 @@ export async function addBillAction(data: Bill) {
     return { message: resJson.message, success: true };
 }
 
-export async function deleteBillAction(billId: number) {
+export async function deleteBillAction(billId: number): Promise<ResponseInterface> {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 

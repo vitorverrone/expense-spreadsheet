@@ -1,6 +1,6 @@
 export type BillType = 'normal' | 'recurrent' | 'installment';
 
-export default interface Bill {
+export interface Bill {
     id: number;
     userId: number;
     title: string;

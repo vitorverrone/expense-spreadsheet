@@ -1,5 +1,7 @@
 
 client-old/
+*.md
+.claude/
 
 # VSCode
 .vscode/*

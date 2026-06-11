@@ -11,7 +11,7 @@ interface ModalProps {
     children: React.ReactNode;
 }
 
-export default function Modal ({ show, modalTitle, setShow, formSubmit, modalFooter, children }: ModalProps) {
+export default function Modal({ show, modalTitle, setShow, formSubmit, modalFooter, children }: ModalProps) {
     useEffect(() => {
         document.body.style.overflow = show ? 'hidden' : 'initial';
     }, [show]);
@@ -48,15 +48,13 @@ export default function Modal ({ show, modalTitle, setShow, formSubmit, modalFoo
                             </button>
                         </div>
 
-                        {formSubmit && (
+                        {formSubmit ? (
                             <form onSubmit={formSubmit} className='w-full grow shrink overflow-auto'>
                                 <div className="p-4 md:p-5 space-y-4 w-full overflow-auto">
                                     {children}
                                 </div>
                             </form>
-                        )}
-
-                        {!formSubmit && (
+                        ) : (
                             <>
                                 <div className="p-4 md:p-5 space-y-4 w-full overflow-auto">
                                     {children}

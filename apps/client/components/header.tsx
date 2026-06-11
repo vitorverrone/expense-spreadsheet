@@ -7,12 +7,15 @@ import { redirect } from 'next/navigation';
 
 import { logoutAction } from '@/actions';
 import UserDataModal from './user-data-modal';
-import UserInterface from '../../interfaces/user.interface';
 import { FaUser } from 'react-icons/fa';
+import { useAuth } from '@/contexts/auth-context';
 
-export function Header({ user }: { user: UserInterface }) {
+export function Header() {
+    const { user } = useAuth();
     const [showUserDataModal, setShowUserDataModal] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+
+    if (!user) return null;
 
     const classes = className(
         'pt-5 z-10 font-normal w-44 absolute right-0 top-[100%]',
@@ -59,7 +62,7 @@ export function Header({ user }: { user: UserInterface }) {
                                             <button onClick={handleLogout} className="w-full text-left block md:px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer">Sair</button>
                                         </div>
                                     </div>
-                                    
+
                                 </div>
                             </li>
                         </ul>

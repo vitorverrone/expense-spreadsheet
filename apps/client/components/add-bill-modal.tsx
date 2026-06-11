@@ -6,14 +6,15 @@ import { calculateFinalDate } from '@/utils/date-helpers';
 import Input from "./input-form";
 import Modal from "./modal";
 import { addBillAction } from '@/actions';
-import Bill from '../../interfaces/bill.iterface';
+import { Bill } from '../../interfaces/bill.iterface';
 import { BillType } from '../../interfaces/bill.iterface';
 import Loading from './loading';
+import { handleCurrencyChange } from '@/utils/currency-helpers';
 
 interface AddBillModalProps {
     showBillModal: boolean;
     setShowBillModal: (show: boolean) => void;
-    userId: string;
+    userId: number;
 }
 
 export default function AddBillModal({ showBillModal, setShowBillModal, userId }: AddBillModalProps) {
@@ -33,7 +34,7 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
 
         const bill = {
             ...data,
-            userId: Number(userId),
+            userId,
             finalDate
         }
 
@@ -49,11 +50,9 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
         setShowBillModal(false);
     };
 
-    const handleCurrencyChange = (e) => {
-        const value = e.target.value || 0;
-        const raw = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: value })
-        const masked = currency.mask({ locale: 'pt-BR', currency: 'BRL', value: raw })
-        setValue('value', masked);
+    const handleCurrency = (value: string | '0') => {
+        const masked = handleCurrencyChange(value)
+        setValue('value', masked as unknown as number);
     };
 
     const modalFooterContent = (
@@ -70,7 +69,7 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
 
             <div className="mb-5">
                 <label htmlFor="value" className="block mb-2 text-sm font-medium dark:text-white">Valor da conta</label>
-                <Input type="text" id="value" placeholder="R$ 200,00" {...register('value', { required: "O campo valor é obrigatório" })} onChange={handleCurrencyChange} />
+                <Input type="text" id="value" placeholder="R$ 200,00" {...register('value', { required: "O campo valor é obrigatório" })} onChange={(e) => handleCurrency(e.target.value)} />
                 {errors.value && <span className="text-red-500">{errors.value.message}</span>}
             </div>
 

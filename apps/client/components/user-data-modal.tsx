@@ -1,13 +1,12 @@
 import { useForm } from "react-hook-form";
-import { GoX } from "react-icons/go";
 import { currency } from 'remask';
-import className from 'classnames';
 
 import { updateUserDataAction } from "@/actions";
 import Input from "./input-form";
 import Modal from "./modal";
 import UserInterface from "../../interfaces/user.interface";
 import toast from "react-hot-toast";
+import { handleCurrencyChange } from "@/utils/currency-helpers";
 
 interface UserDataModalProps {
     showUserDataModal: boolean;
@@ -15,16 +14,16 @@ interface UserDataModalProps {
     user: UserInterface
 }
 
-export default function UserDataModal ({ showUserDataModal, setShowUserDataModal, user }: UserDataModalProps) {
+export default function UserDataModal({ showUserDataModal, setShowUserDataModal, user }: UserDataModalProps) {
     const { register, reset, handleSubmit, setValue, formState: { errors } } = useForm<UserInterface>();
 
     const handleOnSubmit = async (data: UserInterface) => {
-        data.salary = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: data.salary })
-        
+        data.salary = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: String(data.salary ?? 0) })
+
         const result = await updateUserDataAction(data);
 
         if (!result?.success) {
-            toast.error(result?.message);
+            toast.error(result?.message ?? 'Ocorreu um erro');
             return;
         }
 
@@ -33,11 +32,9 @@ export default function UserDataModal ({ showUserDataModal, setShowUserDataModal
         setShowUserDataModal(false);
     };
 
-    const handleCurrencyChange = (e) => {
-        const value = e.target.value || 0;
-        const raw = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: value })
-        const masked = currency.mask({ locale: 'pt-BR', currency: 'BRL', value: raw })
-        setValue('salary', masked);
+    const handleCurrency = (value: string | '0') => {
+        const masked = handleCurrencyChange(value)
+        setValue('salary', masked as unknown as number);
     };
 
     const modalFooterContent = (
@@ -61,7 +58,7 @@ export default function UserDataModal ({ showUserDataModal, setShowUserDataModal
 
             <div className="mb-5 text-left">
                 <label htmlFor="userSalary" className="block mb-2 text-sm font-medium dark:text-white">Salario</label>
-                <Input type="text" id="userSalary" {...register('salary')} defaultValue={currency.mask({ locale: 'pt-BR', currency: 'BRL', value: user.salary })} onChange={handleCurrencyChange} />
+                <Input type="text" id="userSalary" {...register('salary')} defaultValue={currency.mask({ locale: 'pt-BR', currency: 'BRL', value: user.salary ?? 0 })} onChange={(e) => { handleCurrency(e.target.value) }} />
             </div>
 
             <div className="mb-5 text-left flex items-center">

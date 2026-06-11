@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import React, { InputHTMLAttributes, forwardRef } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  className?: string;
+    className?: string;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(({ className = '', ...props }, ref) => {
@@ -15,5 +15,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({ className = '', ...pro
         <input ref={ref} className={classes} {...props} />
     );
 });
+
+Input.displayName = 'Input';
 
 export default Input;

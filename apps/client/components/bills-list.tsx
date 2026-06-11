@@ -9,9 +9,15 @@ import { IoMdTrash } from "react-icons/io";
 
 import AddBillModal from "./add-bill-modal";
 import DeleteBillModal from "./delete-bill-modal";
-import Bill from "../../interfaces/bill.iterface";
+import { Bill } from "../../interfaces/bill.iterface";
+import { useAuth } from "@/contexts/auth-context";
 
-export default function BillsList({ bills, userId, month, year }: { bills: Bill[], userId: string, month: string, year: string }) {
+export default function BillsList({ bills, month, year }: { bills: Bill[], month: string, year: string }) {
+    const { user } = useAuth();
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
     const today = new Date(Number(year), Number(month), 1);
     const [longMonth, setMonth] = useState(today.toLocaleString('default', { month: 'long' }));
     const [newYear, setYear] = useState(today.getFullYear());
@@ -20,11 +26,11 @@ export default function BillsList({ bills, userId, month, year }: { bills: Bill[
     const [showAddBillModal, setShowAddBillModal] = useState(false);
     const [showDeleteBillModal, setShowDeleteBillModal] = useState(false);
     const [deleteBillId, setDeleteBillId] = useState(0);
-    const router = useRouter();
-    const pathname = usePathname();
 
+    if (!user) return null;
+
+    const userId = user.id;
     let monthTotal = 0;
-    const searchParams = useSearchParams();
 
     const navigateMonth = (step: number) => {
         let newMonth = parseInt(month) + step;
@@ -41,9 +47,9 @@ export default function BillsList({ bills, userId, month, year }: { bills: Bill[
         const navigatedDate = new Date(newYear, newMonth, 1);
         const params = new URLSearchParams(searchParams.toString());
 
-        setMonth(navigatedDate.toLocaleString('default', { month: 'long' }))        
+        setMonth(navigatedDate.toLocaleString('default', { month: 'long' }))
         setYear(navigatedDate.getFullYear());
-        
+
         params.set('month', (newMonth + 1).toString());
         params.set('year', newYear.toString());
         router.push(`${pathname}?${params.toString()}`);
@@ -61,51 +67,51 @@ export default function BillsList({ bills, userId, month, year }: { bills: Bill[
 
         if (e.target.value === '') {
             params.delete('title');
-        } else { 
+        } else {
             params.set('title', e.target.value);
         }
 
         router.push(`${pathname}?${params.toString()}`);
     }
-    
+
     const renderedBills = bills?.map((bill) => {
         const recurrentBill = bill.billType === 'recurrent';
         let billValue = bill.value;
 
-            if (bill.billType === 'installment') {
-                billValue = (bill.value / bill.installments);
-            }
+        if (bill.billType === 'installment') {
+            billValue = (bill.value / bill.installments);
+        }
 
-            monthTotal += billValue;
+        monthTotal += billValue;
 
-            return (
-                <tr key={bill.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                    <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                        {bill.title}
-                    </th>
-                    <td className="hidden md:table-cell px-6 py-4 text-center">
-                        {recurrentBill ? '-' : bill.installments}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                        {billValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    </td>
-                    <td className="hidden md:table-cell px-6 py-4 text-center">
-                        {recurrentBill ? '✅' : '❌'}
-                    </td>
-                    <td className="hidden md:table-cell px-6 py-4 text-center">
-                        {new Date(bill.billDate).toLocaleDateString('default')}
-                    </td>
-                    <td className="hidden md:table-cell px-6 py-4 text-center">
-                        {recurrentBill ? '-' :  ('0' + (new Date(bill.finalDate).getMonth() + 1)).slice(-2) + '/' + new Date(bill.finalDate).getFullYear()}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                        <button className="cursor-pointer" onClick={() => handleDeleteBill(bill.id)}><IoMdTrash /></button>
-                    </td>
-                </tr>
-            )
+        return (
+            <tr key={bill.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+                <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    {bill.title}
+                </th>
+                <td className="hidden md:table-cell px-6 py-4 text-center">
+                    {recurrentBill ? '-' : bill.installments}
+                </td>
+                <td className="px-6 py-4 text-center">
+                    {billValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </td>
+                <td className="hidden md:table-cell px-6 py-4 text-center">
+                    {recurrentBill ? '✅' : '❌'}
+                </td>
+                <td className="hidden md:table-cell px-6 py-4 text-center">
+                    {new Date(bill.billDate).toLocaleDateString('default')}
+                </td>
+                <td className="hidden md:table-cell px-6 py-4 text-center">
+                    {recurrentBill ? '-' : ('0' + (new Date(bill.finalDate).getMonth() + 1)).slice(-2) + '/' + new Date(bill.finalDate).getFullYear()}
+                </td>
+                <td className="px-6 py-4 text-center">
+                    <button className="cursor-pointer" onClick={() => handleDeleteBill(bill.id)}><IoMdTrash /></button>
+                </td>
+            </tr>
+        )
     });
-    
-    
+
+
     return (
         <div className="container mx-auto">
             <AddBillModal showBillModal={showAddBillModal} setShowBillModal={setShowAddBillModal} userId={userId} />
@@ -173,7 +179,7 @@ export default function BillsList({ bills, userId, month, year }: { bills: Bill[
                 </table>
             </div>
 
-            <div className="fixed left-[50%] z-10 bottom-0 w-full container mx-auto flex items-center justify-between dark:bg-gray-900 p-5 shadow-xl" style={{transform: 'translateX(-50%)'}}>
+            <div className="fixed left-[50%] z-10 bottom-0 w-full container mx-auto flex items-center justify-between dark:bg-gray-900 p-5 shadow-xl" style={{ transform: 'translateX(-50%)' }}>
                 <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={() => setShowAddBillModal(true)}>
                     <GoPlus />
                 </button>

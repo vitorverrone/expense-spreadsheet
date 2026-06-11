@@ -1,10 +1,11 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import jwt from 'jsonwebtoken';
 
 import BillsList from "@/components/bills-list";
 import { Header } from "@/components/header";
 import { getUserDataAction } from '@/actions';
+import type { Bill } from '../../../interfaces/bill.iterface';
+import { AuthProvider } from '@/contexts/auth-context';
 
 interface DashboardProps {
     searchParams: Promise<{
@@ -14,7 +15,7 @@ interface DashboardProps {
     }>;
 }
 
-async function getBills(params: { month?: string; year?: string, title?: string }) {
+async function getBills(params: { month?: string; year?: string, title?: string }): Promise<Bill[] | null> {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -58,10 +59,9 @@ export default async function Dashboard(props: DashboardProps) {
     const currentYear = searchParams.year || new Date().getFullYear().toString();
 
     return (
-        <>
-            <Header user={user} />
-
-            <BillsList bills={bills} userId={user.id} month={currentMonth} year={currentYear} />
-        </>
+        <AuthProvider user={user!}>
+            <Header />
+            <BillsList bills={bills!} month={currentMonth} year={currentYear} />
+        </AuthProvider>
     );
 }
