@@ -33,6 +33,7 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
         const finalDate = calculateFinalDate(data.billDate, selectedType, data.installments);
 
         data.value = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: data.value.toString() });
+        data.billDate = selectedType === 'recurrent' ? today.toISOString().split('T')[0] : data.billDate;
 
         const bill = {
             ...data,
@@ -75,12 +76,6 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
                 {errors.value && <span className="text-red-500">{errors.value.message}</span>}
             </div>
 
-            <div className="mb-5">
-                <label htmlFor="billDate" className="block mb-2 text-sm font-medium dark:text-white">Data da compra</label>
-                <Input type="date" id="billDate" placeholder="Ex: Conta de Luz" {...register('billDate', { required: "O campo data é obrigatório" })} />
-                {errors.billDate && <span className="text-red-500">{errors.billDate.message}</span>}
-            </div>
-
             <div className="my-5">
                 <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Tipo de compra
@@ -108,6 +103,12 @@ export default function AddBillModal({ showBillModal, setShowBillModal, userId }
                 </div>
                 {errors.billType && <span className="text-red-500">{errors.billType.message}</span>}
             </div>
+
+            {selectedType !== 'recurrent' && (<div className="mb-5">
+                <label htmlFor="billDate" className="block mb-2 text-sm font-medium dark:text-white">Data da compra</label>
+                <Input type="date" id="billDate" placeholder="Ex: Conta de Luz" {...register('billDate', { required: "O campo data é obrigatório" })} />
+                {errors.billDate && <span className="text-red-500">{errors.billDate.message}</span>}
+            </div>)}
 
             {selectedType === 'installment' && (<div className="mb-5">
                 <label htmlFor="installments" className="block mb-2 text-sm font-medium dark:text-white">Parcelas</label>
