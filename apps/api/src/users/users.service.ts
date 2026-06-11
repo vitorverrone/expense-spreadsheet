@@ -94,13 +94,14 @@ export class UsersService {
 
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
-      Object.assign(user, { ...updateData, password: hashedPassword });
+      await this.usersRepo.update(id, { ...updateData, password: hashedPassword });
     } else {
-      Object.assign(user, updateData);
+      await this.usersRepo.update(id, updateData);
     }
 
-    return this.usersRepo.save(user);
+    return this.findOne(id);
   }
+
 
   async remove(id: number) {
     const user = await this.usersRepo.findOneBy({ id });
