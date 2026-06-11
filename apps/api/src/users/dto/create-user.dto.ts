@@ -19,6 +19,7 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
+  @IsOptional()
   @IsNumber()
   salary: number;
 

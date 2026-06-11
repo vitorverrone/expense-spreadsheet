@@ -6,17 +6,21 @@ import { vi, describe, it, expect } from 'vitest';
 import '@testing-library/jest-dom';
 import AddBillModal from './add-bill-modal';
 
-vi.mock('@/actions', () => ({
-    addBillAction: vi.fn(),
+vi.mock('@/lib/hooks/use-bills', () => ({
+    useAddBill: () => ({
+        mutateAsync: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
+        isPending: false,
+    }),
 }));
 
 vi.mock('./modal', () => ({
-    default: ({ children, show }: any) => show ? <div data-testid="mock-modal">{children}</div> : null
+    default: ({ children, show, modalFooter }: any) =>
+        show ? <div data-testid="mock-modal">{children}{modalFooter}</div> : null
 }));
 
 describe('AddBillModal', () => {
     it('deve aplicar máscara de moeda enquanto o usuário digita', () => {
-        render(<AddBillModal showBillModal={true} setShowBillModal={() => { }} userId="1" />);
+        render(<AddBillModal showBillModal={true} setShowBillModal={() => { }} userId={1} />);
 
         const input = screen.getByPlaceholderText('R$ 200,00') as HTMLInputElement;
 
@@ -27,7 +31,7 @@ describe('AddBillModal', () => {
     });
 
     it('deve mostrar o campo de parcelas apenas quando "Parcelada" for selecionado', async () => {
-        render(<AddBillModal showBillModal={true} setShowBillModal={() => { }} userId="1" />);
+        render(<AddBillModal showBillModal={true} setShowBillModal={() => { }} userId={1} />);
 
         expect(screen.queryByLabelText(/Parcelas/i)).not.toBeInTheDocument();
 
