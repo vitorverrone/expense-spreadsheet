@@ -10,10 +10,10 @@ import { IoMdTrash } from "react-icons/io";
 import AddBillModal from "./add-bill-modal";
 import DeleteBillModal from "./delete-bill-modal";
 import { Bill } from "../../interfaces/bill.iterface";
-import { useAuth } from "@/contexts/auth-context";
+import { useUser } from "@/lib/hooks/use-user";
 
 export default function BillsList({ bills, month, year }: { bills: Bill[], month: string, year: string }) {
-    const { user } = useAuth();
+    const { data: user } = useUser();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();

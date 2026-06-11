@@ -3,12 +3,12 @@
 import { useForm } from "react-hook-form";
 import { currency } from 'remask';
 
-import { updateUserDataAction } from "@/actions";
 import Input from "./input-form";
 import Modal from "./modal";
 import UserInterface from "../../interfaces/user.interface";
 import toast from "react-hot-toast";
 import { handleCurrencyChange } from "@/utils/currency-helpers";
+import { useUpdateUser } from "@/lib/hooks/use-user";
 
 interface UserDataModalProps {
     showUserDataModal: boolean;
@@ -18,20 +18,23 @@ interface UserDataModalProps {
 
 export default function UserDataModal({ showUserDataModal, setShowUserDataModal, user }: UserDataModalProps) {
     const { register, reset, handleSubmit, setValue, formState: { errors } } = useForm<UserInterface>();
+    const updateUser = useUpdateUser();
 
     const handleOnSubmit = async (data: UserInterface) => {
         data.salary = currency.unmask({ locale: 'pt-BR', currency: 'BRL', value: String(data.salary ?? 0) })
 
-        const result = await updateUserDataAction(data);
-
-        if (!result?.success) {
-            toast.error(result?.message ?? 'Ocorreu um erro');
-            return;
-        }
-
-        toast.success(result?.message);
-        reset();
-        setShowUserDataModal(false);
+        updateUser.mutate(data, {
+            onSuccess: (result) => {
+                if (!result?.success) {
+                    toast.error(result?.message ?? 'Ocorreu um erro');
+                    return;
+                }
+                toast.success(result?.message);
+                reset();
+                setShowUserDataModal(false);
+            },
+            onError: () => toast.error('Ocorreu um erro'),
+        });
     };
 
     const handleCurrency = (value: string | '0') => {

@@ -23,7 +23,7 @@ export class BillsController {
   @Post()
   async create(@CurrentUser() user: any, @Body() createBillDto: CreateBillDto) {
     await this.billsService.create(user.sub, createBillDto);
-    return { message: 'Bill created successfully' };
+    return { message: 'Conta criada com sucesso' };
   }
 
   @Get()
@@ -48,6 +48,6 @@ export class BillsController {
   @Delete('/:id')
   async remove(@CurrentUser() user: any, @Param('id') id: string) {
     await this.billsService.remove(+id, user.sub);
-    return { message: 'Bill deleted successfully' };
+    return { message: 'Conta deletada com sucesso' };
   }
 }

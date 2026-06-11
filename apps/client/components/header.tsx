@@ -8,10 +8,10 @@ import { redirect } from 'next/navigation';
 import { logoutAction } from '@/actions';
 import UserDataModal from './user-data-modal';
 import { FaUser } from 'react-icons/fa';
-import { useAuth } from '@/contexts/auth-context';
+import { useUser } from '@/lib/hooks/use-user';
 
 export function Header() {
-    const { user } = useAuth();
+    const { data: user } = useUser();
     const [showUserDataModal, setShowUserDataModal] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -27,7 +27,7 @@ export function Header() {
 
     const handleLogout = () => {
         logoutAction();
-        toast.success('Logged out successfully');
+        toast.success('Deslogado com sucesso');
         redirect('/');
     };
 

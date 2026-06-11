@@ -17,18 +17,18 @@ import { CurrentUser } from './decorators/current-user.decorator';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     await this.usersService.create(createUserDto);
-    return { message: 'Create user successfully' };
+    return { message: 'Usuário criado com sucesso' };
   }
 
   @Post('/login')
   async login(@Body() loginUserDto: LoginUserDto) {
     const { token } = await this.usersService.login(loginUserDto);
-    return { message: 'Logged in successfully', token: token };
+    return { message: 'Logado com sucesso', token: token };
   }
 
   @UseGuards(AuthGuard)
@@ -47,7 +47,7 @@ export class UsersController {
   @Patch('/me')
   async update(@CurrentUser() user: any, @Body() updateUserDto: UpdateUserDto) {
     await this.usersService.update(user.sub, updateUserDto);
-    return { message: 'Updated successfully' };
+    return { message: 'Atualizado com sucesso' };
   }
 
   @UseGuards(AuthGuard)

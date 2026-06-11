@@ -1,39 +1,45 @@
-# 📊 Expense Spreadsheet V3
+# Expense Spreadsheet V3
 
-Este é um monorepo gerenciado pelo [Turborepo](https://turbo.build/), contendo o ecossistema completo da aplicação de planilhas de gastos.
-
----
-
-## 📂 Estrutura do Projeto
-
-O projeto é dividido em três pacotes principais dentro da pasta `apps/`:
-
-- **`apps/api`**: Backend robusto construído com **NestJS 11**, TypeORM e PostgreSQL.
-- **`apps/client`**: Frontend moderno construído com **Next.js 16** (App Router), **React 19** e **Tailwind CSS 4**.
-- **`apps/interfaces`**: Contratos e tipos TypeScript compartilhados entre o Frontend e o Backend.
+A full-stack personal expense tracker built as a Turborepo monorepo.
 
 ---
 
-## 🛠️ Tecnologias Principais
+## Project Structure
 
-- **Monorepo**: Turborepo
-- **Backend**: NestJS 11, TypeORM, JWT Auth, Class Validator
-- **Frontend**: Next.js 16 (Server Components & Actions), React 19, Tailwind CSS 4, React Query
-- **Banco de Dados**: PostgreSQL
-- **Testes**: Playwright (E2E), Vitest (Client), Jest (API)
+```
+apps/
+  api/         → NestJS 11 + TypeORM + PostgreSQL + JWT
+  client/      → Next.js 16 + React 19 + Tailwind CSS 4
+  interfaces/  → Shared TypeScript interfaces
+```
 
 ---
 
-## 🚀 Como Começar
+## Tech Stack
 
-### 1. Instalar dependências
-Na raiz do projeto, execute:
+| Layer | Technologies |
+| :--- | :--- |
+| **Monorepo** | Turborepo, npm workspaces |
+| **Backend** | NestJS 11, TypeORM, JWT, class-validator |
+| **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
+| **State** | React Query, React Context API |
+| **Forms** | React Hook Form, remask |
+| **Database** | PostgreSQL |
+| **Testing** | Jest (API), Vitest + RTL (client), Playwright (E2E) |
+| **CI** | GitHub Actions |
+| **Deploy** | Vercel (client), Railway (API), Neon (PostgreSQL) |
+
+---
+
+## Getting Started
+
+### 1. Install dependencies
+
 ```bash
 npm install
 ```
 
-### 2. Configurar variáveis de ambiente
-Copie os arquivos de exemplo e preencha com seus valores:
+### 2. Configure environment variables
 
 **Linux/macOS:**
 ```bash
@@ -47,33 +53,96 @@ Copy-Item apps/api/.env.example apps/api/.env
 Copy-Item apps/client/.env.example apps/client/.env.local
 ```
 
-> [!WARNING]
-> Em produção, defina `NODE_ENV=production` para desabilitar o `synchronize` automático do TypeORM e configure o CORS na API com a origem correta do seu frontend.
+**`apps/api/.env`**
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=<password>
+DB_NAME=expense_db
+JWT_SECRET=<secret>
+```
 
-### 3. Rodar o projeto em desenvolvimento
-Para iniciar o Client e a API simultaneamente com hot reload:
+**`apps/client/.env.local`**
+```
+API_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3000
+JWT_SECRET=<same secret as api>
+```
+
+### 3. Run in development
+
 ```bash
 npm run dev
 ```
 
-### 4. Build de produção
-Para gerar a versão de produção de todos os apps:
-```bash
-npm run build
+API runs on port `3000`, client on port `5173`.
+
+---
+
+## Available Commands
+
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Start all apps with hot reload (Turbo) |
+| `npm run build` | Production build for all apps |
+| `cd apps/api && npm test` | Run API unit tests (Jest) |
+| `cd apps/client && npm test` | Run client unit tests (Vitest, headless) |
+| `npm run test:ui` | Open Vitest UI (client) |
+| `npm run e2e` | Run Playwright E2E tests (requires build first) |
+
+> Run `npm run build` before `npm run e2e`.
+
+---
+
+## Architecture
+
+### API (NestJS)
+
+- Global prefix: `/api`
+- Auth: JWT Bearer Token via custom `AuthGuard`
+- Modules: `users/`, `bills/`
+- ORM: TypeORM with `synchronize: true` in dev (use migrations in production)
+- CORS enabled globally
+
+**Endpoints:**
+```
+POST   /api/users          → create account
+POST   /api/users/login    → login (returns JWT)
+GET    /api/users/me       → authenticated user data
+PATCH  /api/users/me       → update profile
+
+GET    /api/bills          → list user bills (supports ?month, ?year, ?title)
+POST   /api/bills          → create bill
+PATCH  /api/bills/:id      → update bill
+DELETE /api/bills/:id      → delete bill
 ```
 
----
+### Client (Next.js App Router)
 
-## 📜 Comandos Disponíveis
-
-| Comando | Descrição |
-| :--- | :--- |
-| `npm run dev` | Inicia todos os apps em modo de desenvolvimento via Turbo. |
-| `npm run build` | Compila todos os pacotes para produção. |
-| `npm run e2e` | Executa os testes de ponta a ponta com Playwright. |
-| `npm run test:ui` | Abre a interface de testes do Vitest no Client. |
+- Auth via **httpOnly cookie** (`token`) managed by Server Actions
+- `lib/api.server.ts` — centralized fetch wrapper used by Server Actions
+- `lib/hooks/use-bills.ts` — React Query hooks (`useBills`, `useAddBill`, `useDeleteBill`)
+- `lib/hooks/use-user.ts` — React Query hooks (`useUser`, `useUpdateUser`)
+- Pages: `/` (login), `/create-account`, `/dashboard`
 
 ---
 
-> [!IMPORTANT]
-> As interfaces em `apps/interfaces` garantem a consistência de tipos em todo o projeto. Sempre utilize as interfaces compartilhadas ao criar novos endpoints ou componentes.
+## CI/CD
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and PR to `main`:
+
+1. Install dependencies
+2. Build (API + client)
+3. Test API (Jest)
+4. Test Client (Vitest)
+
+Deploy is triggered automatically by the hosting services on push to `main`.
+
+---
+
+> [!WARNING]
+> In production, set `NODE_ENV=production` to disable TypeORM auto-sync and configure CORS with your actual frontend domain.
+
+> [!NOTE]
+> `apps/interfaces/bill.iterface.ts` has a typo in the filename — kept intentionally for compatibility.

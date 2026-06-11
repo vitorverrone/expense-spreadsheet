@@ -27,8 +27,30 @@ function isAuthTokenPayload(payload: unknown): payload is AuthTokenPayload {
 
 export async function createUserAction(data: UserCreateUpdateInterface): Promise<ResponseInterface> {
     try {
-        const resJson = await apiPost<{ message: string }>('/api/users', data);
-        return { message: resJson.message, success: true };
+        await apiPost<{ message: string }>('/api/users', data);
+
+        const cookieStore = await cookies();
+        const loginRes = await fetch(`${process.env.API_URL}/api/users/login`, {
+            method: 'POST',
+            body: JSON.stringify({ username: data.username, password: data.password }),
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (loginRes.ok) {
+            const loginJson = await loginRes.json();
+            const decoded = jwt.verify(loginJson.token, process.env.JWT_SECRET!);
+
+            if (isAuthTokenPayload(decoded)) {
+                cookieStore.set('token', loginJson.token, {
+                    httpOnly: true,
+                    sameSite: 'lax',
+                    secure: process.env.NODE_ENV === 'production',
+                    path: '/',
+                });
+            }
+        }
+
+        return { message: 'Conta criada com sucesso', success: true };
     } catch (e) {
         return { message: (e as Error).message, success: false };
     }

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { startTransition } from 'react';
+import { useTransition } from 'react';
 import toast from 'react-hot-toast';
 import { MdOutlineKeyboardArrowLeft } from 'react-icons/md';
 
@@ -13,10 +13,11 @@ import { createUserAction } from '@/actions';
 import Input from '@/components/input-form';
 
 export default function CreateAccount() {
+    const [isPending, startTransition] = useTransition();
     const {
         register,
         handleSubmit,
-        formState: { errors, isSubmitting },
+        formState: { errors },
     } = useForm<UserInterface>();
 
     const onSubmit = async (data: UserInterface) => {
@@ -29,7 +30,7 @@ export default function CreateAccount() {
             }
 
             toast.success(result?.message);
-            redirect('/');
+            redirect('/dashboard');
         });
     };
 
@@ -40,25 +41,25 @@ export default function CreateAccount() {
                     <Link href="/" className="absolute left-0 text-gray-500 hover:text-white transition-colors">
                         <MdOutlineKeyboardArrowLeft size={40} />
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">Create account</h1>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">Criar conta</h1>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-5">
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
-                        <Input {...register('name', { required: 'Name is required' })} placeholder="João Silva" disabled={isSubmitting} />
+                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nome</label>
+                        <Input {...register('name', { required: 'Campo obrigatorio' })} placeholder="João Silva" disabled={isPending} />
                         {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
                     </div>
 
                     <div className="mb-5">
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>
-                        <Input {...register('username', { required: 'Username is required' })} placeholder="seu_usuario" disabled={isSubmitting} />
+                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Usuário</label>
+                        <Input {...register('username', { required: 'Campo obrigatorio' })} placeholder="seu_usuario" disabled={isPending} />
                         {errors.username && <p className="mt-1 text-xs text-red-500">{errors.username.message}</p>}
                     </div>
 
                     <div className="mb-5">
                         <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">E-mail</label>
-                        <Input type="email" {...register('email', { required: 'E-mail is required' })} placeholder="email@exemplo.com" disabled={isSubmitting} />
+                        <Input type="email" {...register('email', { required: 'Campo obrigatorio' })} placeholder="email@exemplo.com" disabled={isPending} />
                         {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
                     </div>
 
@@ -67,11 +68,11 @@ export default function CreateAccount() {
                         <Input
                             type="password"
                             {...register('password', {
-                                required: 'Password is required',
-                                minLength: { value: 6, message: 'Minimum of 6 characters' }
+                                required: 'Campo obrigatorio',
+                                minLength: { value: 6, message: 'Minimo de 6 caracteres' }
                             })}
                             placeholder="••••••••"
-                            disabled={isSubmitting}
+                            disabled={isPending}
                         />
                         {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
                     </div>
@@ -80,9 +81,9 @@ export default function CreateAccount() {
                         <button
                             type="submit"
                             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 flex justify-center disabled:opacity-50"
-                            disabled={isSubmitting}
+                            disabled={isPending}
                         >
-                            {isSubmitting ? 'Creating account...' : 'Create account'}
+                            {isPending ? 'Criando conta...' : 'Criar conta'}
                         </button>
                     </div>
                 </form>
