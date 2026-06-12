@@ -5,7 +5,6 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 
-import Loading from './loading';
 import { loginAction } from '../actions';
 import { redirect } from 'next/navigation';
 

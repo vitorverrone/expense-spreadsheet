@@ -33,6 +33,10 @@ export default function BillsList({ bills, month, year }: { bills: Bill[], month
         today.getFullYear()
         , [month, year]);
 
+    const filteredBills = useMemo(() =>
+        bills?.filter(b => b.title.toLowerCase().includes(filterSearch.toLowerCase()))
+        , [bills, filterSearch]);
+
     const navigateMonth = useCallback((step: number) => {
         let newMonth = parseInt(month) + step;
         let newYear = parseInt(year);
@@ -45,7 +49,6 @@ export default function BillsList({ bills, month, year }: { bills: Bill[], month
             newYear--;
         }
 
-        const navigatedDate = new Date(newYear, newMonth, 1);
         const params = new URLSearchParams(searchParams.toString());
 
         params.set('month', (newMonth + 1).toString());
@@ -58,20 +61,6 @@ export default function BillsList({ bills, month, year }: { bills: Bill[], month
         setShowDeleteBillModal(true);
     }, []);
 
-    const handleChangeFilterSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setFilterSearch(e.target.value);
-
-        const params = new URLSearchParams(searchParams.toString());
-
-        if (e.target.value === '') {
-            params.delete('title');
-        } else {
-            params.set('title', e.target.value);
-        }
-
-        router.push(`${pathname}?${params.toString()}`);
-    }, [searchParams, router, pathname]);
-
     if (!user) return null;
 
     const userId = user.id;
@@ -83,8 +72,7 @@ export default function BillsList({ bills, month, year }: { bills: Bill[], month
         return balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     };
 
-
-    const renderedBills = bills?.map((bill) => {
+    const renderedBills = filteredBills?.map((bill) => {
         const recurrentBill = bill.billType === 'recurrent';
         let billValue = bill.value;
 
@@ -152,10 +140,8 @@ export default function BillsList({ bills, month, year }: { bills: Bill[], month
                     <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                         <GoSearch />
                     </div>
-                    <input type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white w-full outline-none" placeholder="Conta de Luz..." onChange={handleChangeFilterSearch} />
+                    <input type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white w-full outline-none" placeholder="Conta de Luz..." onChange={(e) => setFilterSearch(e.target.value)} />
                 </div>
-
-                <MdOutlineRemoveRedEye className="cursor-pointer" />
             </div>}
 
             <div className="relative overflow-x-auto">
